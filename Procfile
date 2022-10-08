@@ -1,1 +1,1 @@
-web: cargo build -r && ./target/release/dyrocki
+web: ./target/release/dyrocki
