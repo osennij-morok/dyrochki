@@ -1,5 +1,5 @@
 use actix_files::Files;
-use actix_web::{HttpServer, App, HttpResponse, get, web::{Data, self}, post};
+use actix_web::{HttpServer, App, HttpResponse, get, web, post};
 use handlebars::{Handlebars, JsonValue};
 use serde::Deserialize;
 use serde_json::json;
@@ -9,19 +9,19 @@ use crate::{holes_counter::{self, HolesCountingResult}, i18n};
 #[derive(Debug)]
 struct ConnectionInfo {
     host: String,
-    port: u16,
+    extern_port: u16,
     protocol: String
 }
 
 pub async fn run(host: &str, port: u16, secured: bool) -> std::io::Result<()> {
-    let hbars_ref: Data<Handlebars<'static>> = web::Data::new(configure_handlebars());
+    let hbars_ref: web::Data<Handlebars<'static>> = web::Data::new(configure_handlebars());
     let protocol: String = match secured {
         true => "https".to_owned(),
         false => "http".to_owned()
     };
-    let connection_info_ref: Data<ConnectionInfo> = web::Data::new(ConnectionInfo { 
+    let connection_info_ref: web::Data<ConnectionInfo> = web::Data::new(ConnectionInfo { 
         host: host.to_owned(), 
-        port,
+        extern_port: extern_port(port),
         protocol
     });
     HttpServer::new(move || {
@@ -70,7 +70,7 @@ async fn count_holes_endpoint(hb: web::Data<Handlebars<'_>>,
 fn render_index(hb: web::Data<Handlebars<'_>>, connection_info: &ConnectionInfo) -> String {
     let data = json!({
         "host": &connection_info.host,
-        "port": connection_info.port,
+        "port": connection_info.extern_port,
         "protocol": &connection_info.protocol,
         "counting": {
             "isPresent": false
@@ -85,7 +85,7 @@ fn render_index_with_result(hb: web::Data<Handlebars<'_>>,
                             count_msg: &str, uncounted_chars_msg: &str) -> String {
     let data = json!({
         "host": &connection_info.host,
-        "port": connection_info.port,
+        "port": connection_info.extern_port,
         "protocol": &connection_info.protocol,
         "counting": {
             "isPresent": true,
@@ -109,4 +109,13 @@ fn configure_handlebars() -> Handlebars<'static> {
     let mut hb = Handlebars::new();
     hb.register_templates_directory(".hbs", "./static/templates").unwrap();
     hb
+}
+
+fn extern_port(intern_port: u16) -> u16 {
+    const EXTERN_PORT_MATCHES_INTERN: bool = false;
+    const EXTERN_PORT_DEFAULT: u16 = 80;
+    if EXTERN_PORT_MATCHES_INTERN {
+        return intern_port;
+    }
+    return EXTERN_PORT_DEFAULT;
 }
