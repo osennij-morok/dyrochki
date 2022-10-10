@@ -5,8 +5,6 @@ mod tests;
 
 const DEFAULT_HOST: &str = "localhost";
 const DEFAULT_PORT: u16 = 8080;
-const DEFAULT_SECURED: bool = false;
-const DEFAULT_WITH_REVERSE_PROXY: bool = false;
 
 #[derive(Debug)]
 pub enum CLICommand {
