@@ -22,7 +22,7 @@ pub fn run() -> CLICommand {
     if let Some(submatch) = matches.subcommand_matches("server") {
         let port: u16 = match submatch.get_one::<u16>("port") {
             Some(port) => port.clone(),
-            None => DEFAULT_PORT
+            None => default_port()
         };
         let host: String = match submatch.get_one::<String>("host") {
             Some(host) => host.clone(),
@@ -73,4 +73,13 @@ fn parse_args() -> ArgMatches {
                 )
         )
         .get_matches()
+}
+
+fn default_port() -> u16 {
+    port_from_env().unwrap_or(DEFAULT_PORT)
+}
+
+fn port_from_env() -> Option<u16> {
+    option_env!("PORT")
+        .map_or(None, |port_str| u16::from_str_radix(port_str, 10).ok())
 }
