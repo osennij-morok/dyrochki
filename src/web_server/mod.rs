@@ -32,7 +32,7 @@ pub async fn run(host: &str, port: u16, secured: bool) -> std::io::Result<()> {
             .service(count_holes_endpoint)
             .service(Files::new("/", "./static"))
     })
-    .bind((host, port))?
+    .bind(("0.0.0.0", port))?
     .run()
     .await
 }
