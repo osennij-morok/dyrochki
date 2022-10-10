@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>{{ui.title}}</title>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" href="../css/bulma.min.css">
+    </head>
+    <body>
+        <div class="columns" style="margin-top: 2em;">
+            <div class="column">
+                <div class="columns is-centered is-vcentered">
+                    <div class="column box is-narrow">
+                        <form action="{{protocol}}://{{host}}:{{port}}/" method="post">
+                            <div class="field">
+                                <label class="label">{{ui.textLabel}}</label>
+                                <div class="control">
+                                    <textarea class="textarea" cols="50" rows="10" name="text"></textarea>
+                                </div>
+                            </div>
+                            <div class="field">
+                                <div class="control">
+                                    <button class="button is-info">{{ui.submitBtn}}</button>
+                                </div>
+                            </div>
+                            {{#if counting.isPresent}}
+                            <div class="field">
+                                <p class="is-size-4">
+                                    {{counting.countMsg}}<br>
+                                </p>
+                                <p>
+                                    {{counting.uncountedCharsMsg}}
+                                </p>
+                            </div>
+                            {{/if}} 
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

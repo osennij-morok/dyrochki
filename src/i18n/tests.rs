@@ -1,7 +1,4 @@
-use std::{fs, str::FromStr, sync::{Arc, Mutex}, process::exit, borrow::Borrow, fmt::Debug};
-
-use fluent::{FluentArgs, FluentResource, FluentBundle, FluentMessage, fluent_args};
-use unic_langid::LanguageIdentifier;
+use fluent::fluent_args;
 
 use super::t;
 
