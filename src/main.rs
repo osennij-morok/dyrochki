@@ -13,8 +13,9 @@ async fn main() -> std::io::Result<()> {
         CLICommand::Server { 
             host, 
             port, 
-            secure 
-        } => return web_server::run(&host, port, secure).await
+            secure,
+            with_reverse_proxy 
+        } => return web_server::run(&host, port, secure, with_reverse_proxy).await
     }
     Ok(())
 }

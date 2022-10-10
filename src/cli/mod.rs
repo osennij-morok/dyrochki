@@ -6,13 +6,15 @@ mod tests;
 const DEFAULT_HOST: &str = "localhost";
 const DEFAULT_PORT: u16 = 8080;
 const DEFAULT_SECURED: bool = false;
+const DEFAULT_WITH_REVERSE_PROXY: bool = false;
 
 #[derive(Debug)]
 pub enum CLICommand {
     Server {
         host: String, 
         port: u16,
-        secure: bool
+        secure: bool,
+        with_reverse_proxy: bool
     },
     Count(String),
 }
@@ -28,12 +30,10 @@ pub fn run() -> CLICommand {
             Some(host) => host.clone(),
             None => DEFAULT_HOST.to_owned()
         };
-        let secured: bool = match submatch.get_one::<bool>("secured") {
-            Some(secured) => *secured,
-            None => DEFAULT_SECURED
-        };
+        let secure: bool = submatch.get_flag("secured");
+        let with_reverse_proxy: bool = submatch.get_flag("withreverseproxy");
         println!("На порту {} можно посчитать дырочки....", port);
-        return CLICommand::Server { host, port, secure: secured };
+        return CLICommand::Server { host, port, secure, with_reverse_proxy };
     }
     if let Some(submatch) = matches.subcommand_matches("count") {
         let text: String = match submatch.get_one::<String>("text") {
@@ -59,6 +59,9 @@ fn parse_args() -> ArgMatches {
                 )
                 .arg(
                     arg!(--host [HOST] "Host to serve content on")
+                )
+                .arg(
+                    arg!(--withreverseproxy "Use this flag, if you run the server behind a reverse proxy like nginx")
                 )
                 .arg(
                     arg!(-s --secured "Use https")

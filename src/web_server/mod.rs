@@ -13,7 +13,7 @@ struct ConnectionInfo {
     protocol: String
 }
 
-pub async fn run(host: &str, port: u16, secure: bool) -> std::io::Result<()> {
+pub async fn run(host: &str, port: u16, secure: bool, with_reverse_proxy: bool) -> std::io::Result<()> {
     let hbars_ref: web::Data<Handlebars<'static>> = web::Data::new(configure_handlebars());
     let protocol: String = match secure {
         true => "https".to_owned(),
@@ -21,7 +21,7 @@ pub async fn run(host: &str, port: u16, secure: bool) -> std::io::Result<()> {
     };
     let connection_info_ref: web::Data<ConnectionInfo> = web::Data::new(ConnectionInfo { 
         host: host.to_owned(), 
-        extern_port: extern_port(port, secure),
+        extern_port: extern_port(port, secure, with_reverse_proxy),
         protocol
     });
     HttpServer::new(move || {
@@ -111,11 +111,10 @@ fn configure_handlebars() -> Handlebars<'static> {
     hb
 }
 
-fn extern_port(intern_port: u16, secure: bool) -> u16 {
-    const EXTERN_PORT_MATCHES_INTERN: bool = false;
+fn extern_port(intern_port: u16, secure: bool, with_reverse_proxy: bool) -> u16 {
     const EXTERN_PORT_DEFAULT_INSECURE: u16 = 80;
     const EXTERN_PORT_DEFAULT_SECURE: u16 = 443;
-    if EXTERN_PORT_MATCHES_INTERN {
+    if !with_reverse_proxy {
         return intern_port;
     }
     if secure {
