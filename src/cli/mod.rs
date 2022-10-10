@@ -12,7 +12,7 @@ pub enum CLICommand {
     Server {
         host: String, 
         port: u16,
-        secured: bool
+        secure: bool
     },
     Count(String),
 }
@@ -33,7 +33,7 @@ pub fn run() -> CLICommand {
             None => DEFAULT_SECURED
         };
         println!("На порту {} можно посчитать дырочки....", port);
-        return CLICommand::Server { host, port, secured };
+        return CLICommand::Server { host, port, secure: secured };
     }
     if let Some(submatch) = matches.subcommand_matches("count") {
         let text: String = match submatch.get_one::<String>("text") {

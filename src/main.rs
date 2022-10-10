@@ -13,8 +13,8 @@ async fn main() -> std::io::Result<()> {
         CLICommand::Server { 
             host, 
             port, 
-            secured 
-        } => return web_server::run(&host, port, secured).await
+            secure 
+        } => return web_server::run(&host, port, secure).await
     }
     Ok(())
 }

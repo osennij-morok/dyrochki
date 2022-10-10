@@ -13,15 +13,15 @@ struct ConnectionInfo {
     protocol: String
 }
 
-pub async fn run(host: &str, port: u16, secured: bool) -> std::io::Result<()> {
+pub async fn run(host: &str, port: u16, secure: bool) -> std::io::Result<()> {
     let hbars_ref: web::Data<Handlebars<'static>> = web::Data::new(configure_handlebars());
-    let protocol: String = match secured {
+    let protocol: String = match secure {
         true => "https".to_owned(),
         false => "http".to_owned()
     };
     let connection_info_ref: web::Data<ConnectionInfo> = web::Data::new(ConnectionInfo { 
         host: host.to_owned(), 
-        extern_port: extern_port(port),
+        extern_port: extern_port(port, secure),
         protocol
     });
     HttpServer::new(move || {
@@ -111,11 +111,15 @@ fn configure_handlebars() -> Handlebars<'static> {
     hb
 }
 
-fn extern_port(intern_port: u16) -> u16 {
+fn extern_port(intern_port: u16, secure: bool) -> u16 {
     const EXTERN_PORT_MATCHES_INTERN: bool = false;
-    const EXTERN_PORT_DEFAULT: u16 = 80;
+    const EXTERN_PORT_DEFAULT_INSECURE: u16 = 80;
+    const EXTERN_PORT_DEFAULT_SECURE: u16 = 443;
     if EXTERN_PORT_MATCHES_INTERN {
         return intern_port;
     }
-    return EXTERN_PORT_DEFAULT;
+    if secure {
+        return EXTERN_PORT_DEFAULT_SECURE;
+    }
+    return EXTERN_PORT_DEFAULT_INSECURE;
 }
