@@ -80,6 +80,7 @@ fn default_port() -> u16 {
 }
 
 fn port_from_env() -> Option<u16> {
-    option_env!("PORT")
-        .map_or(None, |port_str| u16::from_str_radix(port_str, 10).ok())
+    std::env::var("PORT")
+        .ok()
+        .map_or(None, |port_str| u16::from_str_radix(&port_str, 10).ok())
 }
