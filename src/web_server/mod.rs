@@ -55,7 +55,8 @@ async fn count_holes_endpoint(hb: web::Data<Handlebars<'_>>,
                               form: web::Form<CountHolesForm>) -> HttpResponse {
     if form.text.trim().is_empty() {
         let msg: String =  i18n::holes::input_text_is_empty_msg();
-        let body: String = render_index_with_result(hb, &connection_info, &msg, "");
+        let body: String = render_index_with_result(hb, &connection_info,
+            &msg, "", "");
         return HttpResponse::Ok().body(body);
     }
 
@@ -63,7 +64,8 @@ async fn count_holes_endpoint(hb: web::Data<Handlebars<'_>>,
 
     let count_msg: String = i18n::holes::holes_found_msg(counting_result.holes_count);
     let uncounted_chars_msg: String = i18n::holes::uncounted_chars_msg(&counting_result.uncounted_chars);
-    let body: String = render_index_with_result(hb, &connection_info, &count_msg, &uncounted_chars_msg);
+    let body: String = render_index_with_result(hb, &connection_info, 
+        &count_msg, &uncounted_chars_msg, &form.text);
     HttpResponse::Ok().body(body)
 }
 
@@ -72,6 +74,7 @@ fn render_index(hb: web::Data<Handlebars<'_>>, connection_info: &ConnectionInfo)
         "host": &connection_info.host,
         "port": connection_info.extern_port,
         "protocol": &connection_info.protocol,
+        "textareaContent": "",
         "counting": {
             "isPresent": false
         },
@@ -80,13 +83,13 @@ fn render_index(hb: web::Data<Handlebars<'_>>, connection_info: &ConnectionInfo)
     hb.render("index", &data).unwrap()
 }
 
-fn render_index_with_result(hb: web::Data<Handlebars<'_>>, 
-                            connection_info: &ConnectionInfo, 
-                            count_msg: &str, uncounted_chars_msg: &str) -> String {
+fn render_index_with_result(hb: web::Data<Handlebars<'_>>, connection_info: &ConnectionInfo, 
+                            count_msg: &str, uncounted_chars_msg: &str, prev_input_text: &str) -> String {
     let data = json!({
         "host": &connection_info.host,
         "port": connection_info.extern_port,
         "protocol": &connection_info.protocol,
+        "textareaContent": prev_input_text,
         "counting": {
             "isPresent": true,
             "countMsg": count_msg,
