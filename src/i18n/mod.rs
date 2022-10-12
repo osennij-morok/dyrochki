@@ -1,10 +1,10 @@
 use std::{
-    sync::{Arc, RwLock}, 
     fs, 
     str::FromStr
 };
 
 use fluent::{FluentArgs, FluentResource, FluentBundle, FluentMessage};
+use lazy_static::lazy_static;
 use unic_langid::LanguageIdentifier;
 
 #[cfg(test)]
@@ -15,7 +15,7 @@ const LOCALE: &str = "ru_RU";
 const PANIC_MSG: &str = "Malformed locales directory";
 
 fn t(message_key: &str, args: Option<&FluentArgs>) -> Option<String> {
-    let bundle: FluentBundle<Arc<FluentResource>> = create_bundle();
+    let bundle: FluentBundle<&'static FluentResource> = create_bundle();
     let msg: FluentMessage = match bundle.get_message(message_key) {
         Some(msg) => msg,
         None => return None
@@ -32,6 +32,11 @@ fn t(message_key: &str, args: Option<&FluentArgs>) -> Option<String> {
     return Some(result);
 }
 
+lazy_static! {
+    static ref RESOURCE: FluentResource = load_resource()
+        .expect("Resource file is required!");
+}
+
 fn load_resource() -> Option<FluentResource> {
     const RESOURCE_FILE_NAME: &str = "general.ftl";
     let resource_file_path: String = format!("locales/{}/{}", LOCALE, RESOURCE_FILE_NAME);
@@ -42,27 +47,9 @@ fn load_resource() -> Option<FluentResource> {
     return FluentResource::try_new(resource_str).ok();
 }
 
-fn load_cached_resource() -> Arc<FluentResource> {
-    static CACHED_RESOURCE: RwLock<Option<Arc<FluentResource>>> = RwLock::new(None);
-    let resource_lock = CACHED_RESOURCE.read().unwrap();
-    if let Some(resource) = &*resource_lock {
-        return Arc::clone(resource);
-    }
-    std::mem::drop(resource_lock);
-    let mut resource_lock = CACHED_RESOURCE.write().unwrap();
-    if let Some(resource) = &*resource_lock {
-        return Arc::clone(resource);
-    }
-    let resource: FluentResource = match load_resource() {
-        Some(resource) => resource,
-        None => panic!("Resource file is required!")
-    };
-    return Arc::clone(resource_lock.insert(Arc::new(resource)));
-}
-
-fn create_bundle() -> FluentBundle<Arc<FluentResource>> {
-    let mut bundle: FluentBundle<Arc<FluentResource>> = FluentBundle::new(vec![load_lang_id()]);
-    bundle.add_resource(load_cached_resource()).unwrap();
+fn create_bundle() -> FluentBundle<&'static FluentResource> {
+    let mut bundle: FluentBundle<&'static FluentResource> = FluentBundle::new(vec![load_lang_id()]);
+    bundle.add_resource(&RESOURCE).unwrap();
     return bundle;
 }
 
