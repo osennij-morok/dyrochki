@@ -10,7 +10,7 @@ pub fn count_to_stdout(text: &str) {
     println!("{}", i18n::holes::holes_found_msg(counting_result.holes_count));
     if counting_result.uncounted_chars.len() > 0 {
         let uncounted_chars_str: String = i18n::holes::uncounted_chars_msg(&counting_result.uncounted_chars);
-        println!("Непосчитанные символы: {}", uncounted_chars_str);
+        println!("{}", uncounted_chars_str);
     }
 }
 
