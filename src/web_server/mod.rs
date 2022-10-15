@@ -132,11 +132,15 @@ fn extern_port(intern_port: u16, secure: bool, with_reverse_proxy: bool) -> u16 
 
 #[get("/{filepath:.*}")]
 async fn get_file(req: HttpRequest, file_path: web::Path<String>) -> HttpResponse {
-    const FILES: phf::Map<&str, (&str, &str)> = phf_map!( // path => (content, etag)
+    const FILES: phf::Map<&str, (&[u8], &str)> = phf_map!( // path => (content, etag)
         "css/bulma.min.css" => (
-            include_str!("../../static/css/bulma.min.css"),
+            include_bytes!("../../static/css/bulma.min.css"),
             env!("BULMA_HASH")
-        )
+        ),
+        "favicon.png" => (
+            include_bytes!("../../static/favicon.png"),
+            env!("FAVICON_HASH")
+        ),
     );
     let (file_content, stored_etag) = match FILES.get(&file_path) {
         Some(entry) => entry,
