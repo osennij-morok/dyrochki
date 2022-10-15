@@ -1,6 +1,6 @@
-use actix_files::Files;
-use actix_web::{HttpServer, App, HttpResponse, get, web, post};
-use handlebars::{Handlebars, JsonValue};
+use actix_web::{HttpServer, App, HttpResponse, get, web, post, HttpRequest, http::header::{self, EntityTag}};
+use handlebars::{Handlebars, JsonValue, Template};
+use phf::phf_map;
 use serde::Deserialize;
 use serde_json::json;
 
@@ -28,9 +28,9 @@ pub async fn run(host: &str, port: u16, secure: bool, with_reverse_proxy: bool) 
         App::new()
             .app_data(hbars_ref.clone())
             .app_data(connection_info_ref.clone())
-            .service(index_endpoint)
             .service(count_holes_endpoint)
-            .service(Files::new("/", "./static"))
+            .service(index_endpoint)
+            .service(get_file)
     })
     .bind(("0.0.0.0", port))?
     .run()
@@ -103,14 +103,18 @@ fn render_index_with_result(hb: web::Data<Handlebars<'_>>, connection_info: &Con
 fn ui_json_default_value() -> JsonValue {
     json!({
         "textLabel": i18n::holes::text_label_msg(),
-        "title": i18n::holes::index_title_msg(),
+        "title":     i18n::holes::index_title_msg(),
         "submitBtn": i18n::holes::count_holes_btn_msg()
     })
 }
 
 fn configure_handlebars() -> Handlebars<'static> {
     let mut hb = Handlebars::new();
-    hb.register_templates_directory(".hbs", "./static/templates").unwrap();
+
+    const INDEX_TEMPLATE_STR: &str = include_str!("../../static/templates/index.hbs");
+    let index_template = Template::compile(INDEX_TEMPLATE_STR).unwrap();
+    hb.register_template("index", index_template);
+
     hb
 }
 
@@ -124,4 +128,29 @@ fn extern_port(intern_port: u16, secure: bool, with_reverse_proxy: bool) -> u16 
         return EXTERN_PORT_DEFAULT_SECURE;
     }
     return EXTERN_PORT_DEFAULT_INSECURE;
+}
+
+#[get("/{filepath:.*}")]
+async fn get_file(req: HttpRequest, file_path: web::Path<String>) -> HttpResponse {
+    const FILES: phf::Map<&str, (&str, &str)> = phf_map!( // path => (content, etag)
+        "css/bulma.min.css" => (
+            include_str!("../../static/css/bulma.min.css"),
+            env!("BULMA_HASH")
+        )
+    );
+    let (file_content, stored_etag) = match FILES.get(&file_path) {
+        Some(entry) => entry,
+        None => return HttpResponse::NotFound().finish()
+    };
+    if let Some(req_etag) = req.headers()
+        .get(header::IF_NONE_MATCH)
+        .map(|header_value| header_value.to_str().unwrap().replace("\"", "")) 
+    {
+        if &req_etag == *stored_etag {
+            return HttpResponse::NotModified().finish();
+        }
+    }
+    return HttpResponse::Ok()
+        .append_header(header::ETag(EntityTag::new_strong((*stored_etag).to_owned())))
+        .body(*file_content);
 }

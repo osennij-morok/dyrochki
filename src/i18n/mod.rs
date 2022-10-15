@@ -1,7 +1,4 @@
-use std::{
-    fs, 
-    str::FromStr
-};
+use std::str::FromStr;
 
 use fluent::{FluentArgs, FluentResource, FluentBundle, FluentMessage};
 use lazy_static::lazy_static;
@@ -37,14 +34,15 @@ lazy_static! {
         .expect("Resource file is required!");
 }
 
+macro_rules! LOCALE { () => { "ru_RU" } }
+macro_rules! RESOURCE_FILE_NAME { () => { "general.ftl" } }
+macro_rules! RESOURCE_FILE_PATH {
+    () => { concat!("../../locales/", LOCALE!(), "/", RESOURCE_FILE_NAME!()) }
+}
+
 fn load_resource() -> Option<FluentResource> {
-    const RESOURCE_FILE_NAME: &str = "general.ftl";
-    let resource_file_path: String = format!("locales/{}/{}", LOCALE, RESOURCE_FILE_NAME);
-    let resource_str: String = match fs::read_to_string(&resource_file_path) {
-        Ok(resource_str) => resource_str,
-        Err(_) => return None
-    };
-    return FluentResource::try_new(resource_str).ok();
+    const RESOURCE_STR: &str = include_str!(RESOURCE_FILE_PATH!());
+    return FluentResource::try_new(RESOURCE_STR.to_owned()).ok();
 }
 
 fn create_bundle() -> FluentBundle<&'static FluentResource> {

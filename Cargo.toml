@@ -2,6 +2,7 @@
 name = "dyrocki"
 version = "0.1.0"
 edition = "2021"
+#build = "build.rs"
 
 [profile.release]
 strip = true
@@ -20,5 +21,10 @@ lazy_static = "1.4.0"
 phf = { version = "0.11.1", features = ["macros"] }
 serde = { version = "1.0.145", features = ["derive"] }
 serde_json = "1.0.86"
+sha1 = "0.10.5"
 tokio = { version = "1.21.2", features = ["full"] }
 unic-langid = { version = "0.9.0", features = ["macros"] }
+
+[build-dependencies]
+hex = "0.4.3"
+sha1 = "0.10.5"
