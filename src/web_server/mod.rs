@@ -1,5 +1,6 @@
 use actix_web::{HttpServer, App, HttpResponse, get, web, post, HttpRequest, http::header::{self, EntityTag}};
 use handlebars::{Handlebars, JsonValue, Template};
+use log::info;
 use phf::phf_map;
 use serde::Deserialize;
 use serde_json::json;
@@ -53,6 +54,7 @@ struct CountHolesForm {
 async fn count_holes_endpoint(hb: web::Data<Handlebars<'_>>, 
                               connection_info: web::Data<ConnectionInfo>, 
                               form: web::Form<CountHolesForm>) -> HttpResponse {
+    info!("Checked text: {}", form.text.trim());
     if form.text.trim().is_empty() {
         let msg: String =  i18n::holes::input_text_is_empty_msg();
         let body: String = render_index_with_result(hb, &connection_info,

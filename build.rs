@@ -7,6 +7,7 @@ fn main() {
     println!("cargo:rustc-env=BULMA_HASH={}", bulma_css_hash);
     let favicon_hash: String = hash_file("./static/favicon.png");
     println!("cargo:rustc-env=FAVICON_HASH={}", favicon_hash);
+    println!("cargo:rustc-env=RUST_LOG=info");
 }
 
 fn hash_file<P: AsRef<Path>>(path: P) -> String {

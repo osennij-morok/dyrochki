@@ -7,6 +7,7 @@ mod web_server;
 
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
+    env_logger::init();
     let cli_command: CLICommand = cli::run();
     match cli_command {
         CLICommand::Count(text) => holes_counter::count_to_stdout(&text),

@@ -15,9 +15,11 @@ codegen-units = 1
 actix-files = "0.6.2"
 actix-web = "4.2.1"
 clap = { version = "4.0.10", features = ["cargo"] }
+env_logger = "0.9.1"
 fluent = "0.16.0"
 handlebars = { version = "4.3.5", features = ["dir_source"] }
 lazy_static = "1.4.0"
+log = "0.4.17"
 phf = { version = "0.11.1", features = ["macros"] }
 serde = { version = "1.0.145", features = ["derive"] }
 serde_json = "1.0.86"
