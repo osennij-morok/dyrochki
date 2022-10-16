@@ -1,6 +1,15 @@
 use std::str::FromStr;
 
-use actix_web::{HttpServer, App, HttpResponse, get, web, post, HttpRequest, http::header::{self, EntityTag}};
+use actix_web::{
+    HttpServer, 
+    App, 
+    HttpResponse, 
+    get, 
+    web, 
+    post, 
+    HttpRequest, 
+    http::header::{self, EntityTag}
+};
 use handlebars::{Handlebars, JsonValue, Template};
 use log::info;
 use mime_guess::Mime;
@@ -147,27 +156,39 @@ async fn get_file(req: HttpRequest, file_path: web::Path<String>) -> HttpRespons
             env!("FAVICON_HASH")
         ),
     );
-    let (file_path, (file_content, stored_etag)) = match FILES.get_entry(&file_path) {
+    let (file_path, (file_content, stored_etag_str)) = match FILES.get_entry(&file_path) {
         Some(entry) => entry,
         None => return HttpResponse::NotFound().finish()
     };
     if let Some(req_etag) = req.headers()
         .get(header::IF_NONE_MATCH)
-        .map(|header_value| header_value.to_str().unwrap().replace("\"", "")) 
+        .map(|header_value| header_value.to_str().unwrap()) 
     {
-        if &req_etag == *stored_etag {
+        if etag_not_changed(&req_etag, stored_etag_str) {
             return HttpResponse::NotModified().finish();
         }
     }
-    
     return HttpResponse::Ok()
         .insert_header(header::ContentType(guess_mimetype(file_path)))
-        .insert_header(header::ETag(EntityTag::new_strong((*stored_etag).to_owned())))
+        .insert_header(header::ETag(stored_etag(stored_etag_str)))
         .body(*file_content);
+}
+
+fn stored_etag(stored_etag_str: &str) -> EntityTag {
+    EntityTag::new_weak(stored_etag_str.to_owned())
 }
 
 fn guess_mimetype(file_path: &str) -> Mime {
     let guess = mime_guess::from_path(file_path);
     guess.first()
-        .unwrap_or(Mime::from_str("text/plaintext").unwrap())
+        .unwrap_or(mime::TEXT_PLAIN)
+}
+
+fn etag_not_changed(request_etag: &str, stored_etag: &str) -> bool {
+    let first_etag: EntityTag = match EntityTag::from_str(request_etag).ok() {
+        Some(first_etag) => first_etag,
+        None => return false
+    };
+    let second_etag = EntityTag::new_weak(stored_etag.to_owned());
+    return first_etag.weak_eq(&second_etag);
 }
