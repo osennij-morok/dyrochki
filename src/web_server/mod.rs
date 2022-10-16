@@ -185,10 +185,10 @@ fn guess_mimetype(file_path: &str) -> Mime {
 }
 
 fn etag_not_changed(request_etag: &str, stored_etag: &str) -> bool {
-    let first_etag: EntityTag = match EntityTag::from_str(request_etag).ok() {
+    let request_etag: EntityTag = match EntityTag::from_str(request_etag).ok() {
         Some(first_etag) => first_etag,
         None => return false
     };
-    let second_etag = EntityTag::new_weak(stored_etag.to_owned());
-    return first_etag.weak_eq(&second_etag);
+    let stored_etag = EntityTag::new_weak(stored_etag.to_owned());
+    return request_etag.weak_eq(&stored_etag);
 }
