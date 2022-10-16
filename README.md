@@ -6,7 +6,7 @@
 
 # Демо
 
-* https://dyrochki.onrender.com
+* https://dyrochki-1k5s.onrender.com
 * https://dyrochki.herokuapp.com (к сожалению, они скоро [прикроют лавочку](https://www.reddit.com/r/Heroku/comments/wxh4hv/starting_november_28_2022_free_heroku_dynos_free/))
 
 
