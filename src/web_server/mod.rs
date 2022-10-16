@@ -1,6 +1,9 @@
+use std::str::FromStr;
+
 use actix_web::{HttpServer, App, HttpResponse, get, web, post, HttpRequest, http::header::{self, EntityTag}};
 use handlebars::{Handlebars, JsonValue, Template};
 use log::info;
+use mime_guess::Mime;
 use phf::phf_map;
 use serde::Deserialize;
 use serde_json::json;
@@ -144,7 +147,7 @@ async fn get_file(req: HttpRequest, file_path: web::Path<String>) -> HttpRespons
             env!("FAVICON_HASH")
         ),
     );
-    let (file_content, stored_etag) = match FILES.get(&file_path) {
+    let (file_path, (file_content, stored_etag)) = match FILES.get_entry(&file_path) {
         Some(entry) => entry,
         None => return HttpResponse::NotFound().finish()
     };
@@ -156,7 +159,15 @@ async fn get_file(req: HttpRequest, file_path: web::Path<String>) -> HttpRespons
             return HttpResponse::NotModified().finish();
         }
     }
+    
     return HttpResponse::Ok()
-        .append_header(header::ETag(EntityTag::new_strong((*stored_etag).to_owned())))
+        .insert_header(header::ContentType(guess_mimetype(file_path)))
+        .insert_header(header::ETag(EntityTag::new_strong((*stored_etag).to_owned())))
         .body(*file_content);
+}
+
+fn guess_mimetype(file_path: &str) -> Mime {
+    let guess = mime_guess::from_path(file_path);
+    guess.first()
+        .unwrap_or(Mime::from_str("text/plaintext").unwrap())
 }
